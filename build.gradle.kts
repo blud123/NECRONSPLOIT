@@ -35,11 +35,16 @@ java {
 }
 
 fun toMinecraftCompat(version: String): String {
-    val match = Regex("""^(\d{2})\.([1-9]\d*)(?:\.([1-9]\d*))?$""")
-        .matchEntire(version)
-        ?: error("Invalid Minecraft version format: $version. Expected YY.D or YY.D.H")
-
-    val (year, drop, _) = match.destructured
+    // Traditional format: 1.21.8 → ~1.21
+    val traditional = Regex("""^(\d+)\.(\d+)(?:\.\d+)?$""").matchEntire(version)
+    if (traditional != null) {
+        val (major, minor) = traditional.destructured
+        return "~$major.$minor"
+    }
+    // Snapshot year-drop format: 25.1.8 → ~25.1
+    val snapshot = Regex("""^(\d{2})\.([1-9]\d*)(?:\.([1-9]\d*))?$""").matchEntire(version)
+        ?: error("Invalid Minecraft version format: $version")
+    val (year, drop, _) = snapshot.destructured
     return "~$year.$drop"
 }
 
